@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="styles.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="elasticsearch.jquery.js"> </script>
+<script src="bodybuilder.min.js"></script>
+<script src="TabFunctions.js"> </script>
+<script src="OpenBigTabs.js"> </script>
+<script src="Chart.js"></script>
+
+<script>
+$(document).ready(function(){
+
+	document.getElementById("defaultOpen").click();
+	document.getElementById("defaultOpen").click();
+
+	var indexName;
+	var documentsList = [];
+	var documentName;
+	var fieldsList = [];
+
+//Including the elasticsearch module
+
+ 
+var resultSize = 10;
+
+var SearchResult;
+
+var body; 
+
+ var client;
+
+$("#LoadHost").click(function(){
+
+body = bodybuilder();	
+console.log($("#host").val());
+
+	client = new $.es.Client({
+  hosts: $("#host").val()
+});
+
+  client.ping({
+  requestTimeout: 30000,
+}, function (error) {
+  if (error) {
+    console.error('elasticsearch cluster is down!');
+  } else {
+    console.log('All is well');
+  }
+});
+
+  client.cluster.health({},function(err,resp,status) {  
+  console.log("-- Client Health --",resp);
+});
+
+client.search({
+  // index: indexName,
+  
+}, function (error, response) {
+  // ...
+  console.log(error);
+  console.log(response);
+  SearchResult = response;
+ 
+});
+});
+
+
+
+//Button to load all the indices into a drop down list
+
+$("#loadIndicesButton").click(function(){
+ //To display all the indices in cluster
+var indicesList = [];
+client.indices.getMapping({/*index:"bank", type:"account"*/}, function(err,resp,status){
+	for(x in resp){
+	console.log(x);
+	indicesList.push(x);
+	
+}
+	$('#indicesList').empty();
+	$('#indicesList').append($('<option value="" selected disabled hidden>'+"Choose Index"+'</option>'));
+
+
+$.each(indicesList, function(i, p) {
+    $('#indicesList').append($('<option></option>').val(p).html(p));
+});//console.log(resp);
+});
+
+
+
+// var docName = "account";
+//  var indexName = "bank";
+//To display all the properties in document and their types
+
+
+        // $.get("http://localhost:9200", function(data, status, err){
+        // 	//console.log(typeof(data));
+        //     alert("Data: " + data + "Status:" + status + err );
+        // });
+    });
+
+//On changing the index name from drop down list, loads all documents in another dropdown list
+
+$('#indicesList').change(function(){
+  s = $(this);
+  indexName = s.val();
+
+  var documentsList = [];
+
+client.indices.getMapping({index: indexName}, function(err,resp,status){
+	for(x in resp[indexName].mappings){
+	console.log(x);
+	documentsList.push(x);
+}
+$('#documentsList').empty();
+$('#documentsList').append($('<option value="" selected disabled hidden>'+"Choose Document"+'</option>'));
+$.each(documentsList, function(i, p) {
+    $('#documentsList').append($('<option></option>').val(p).html(p));
+
+	//console.log(resp);
+});
+
+});
+
+});
+
+//Load all the fields in another dropdown list and a bunch of other lists for various operations
+
+$('#documentsList').change(function(){
+	s = $(this);
+  var documentName = s.val();
+
+$("#dragFieldsContainer").empty();
+
+client.indices.getMapping({index: indexName}, function(err,resp,status){
+	for(x in resp[indexName].mappings[documentName].properties){
+	console.log(x+" - "+resp[indexName].mappings[documentName].properties[x].type);
+	fieldsList.push(x);
+	//console.log(fieldsList);
+}
+	//console.log(fieldsList);//console.log(resp);
+
+function createElement(element,attribute,inner){
+	if(typeof(element) === "undefined")
+		{return false;
+
+		}
+
+		if(typeof(inner) === "undefined")
+
+			{inner = "";}
+
+		var el = document.createElement(element);
+		if(typeof(attribute) === 'object')
+			{for(var key in attribute)
+				{el.setAttribute(key,attribute[key]);
+				}
+			}
+			if(!Array.isArray(inner)){
+				inner = [inner];
+			}
+			for(var k = 0;k < inner.length;k++)
+				{if(inner[k].tagName)
+					{
+						el.appendChild(inner[k]);
+					}
+					else{
+						el.appendChild(document.createTextNode(inner[k]));
+					}
+				}
+				return el;
+	}
+
+	var index = 0;
+
+	for (; index < fieldsList.length; index++) {
+
+			var element = createElement("div", {"class": "ui-widget-field", "id": fieldsList[index]}, fieldsList[index]);
+
+			$("#dragFieldsContainer").append(element);
+
+			// index++;
+
+	} 
+
+	$("#dragFieldsContainer").children().draggable({revert: true, helper: "clone", scroll: false});
+
+
+
+
+
+
+	$('#QueryfieldsList1').empty();
+	$('#QueryfieldsList1').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#QueryfieldsList1').append($('<option></option>').val(p).html(p));
+
+    $('#QueryfieldsList2').empty();
+	$('#QueryfieldsList2').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#QueryfieldsList2').append($('<option></option>').val(p).html(p))
+ 		});
+
+    $('#QueryfieldsList3').empty();
+	$('#QueryfieldsList3').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#QueryfieldsList3').append($('<option></option>').val(p).html(p))
+});
+
+	 $('#QueryfieldsList4').empty();
+	$('#QueryfieldsList4').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#QueryfieldsList4').append($('<option></option>').val(p).html(p))
+});
+	 $('#QueryfieldsList5').empty();
+	$('#QueryfieldsList5').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#QueryfieldsList5').append($('<option></option>').val(p).html(p))
+});
+		$('#FilterfieldsList1').empty();
+	$('#FilterfieldsList1').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#FilterfieldsList1').append($('<option></option>').val(p).html(p));
+
+    $('#FilterfieldsList2').empty();
+	$('#FilterfieldsList2').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#FilterfieldsList2').append($('<option></option>').val(p).html(p))
+ 		});
+
+    $('#FilterfieldsList3').empty();
+	$('#FilterfieldsList3').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#FilterfieldsList3').append($('<option></option>').val(p).html(p))
+});
+
+	$('#AggregationFieldsList1').empty();
+	$('#AggregationFieldsList1').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#AggregationFieldsList1').append($('<option></option>').val(p).html(p))
+});
+
+	$('#AggregationFieldsList2').empty();
+	$('#AggregationFieldsList2').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#AggregationFieldsList2').append($('<option></option>').val(p).html(p))
+});
+
+	$('#AggregationFieldsList3').empty();
+	$('#AggregationFieldsList3').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#AggregationFieldsList3').append($('<option></option>').val(p).html(p))
+});
+
+	$('#SortfieldsList1').empty();
+	$('#SortfieldsList1').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#SortfieldsList1').append($('<option></option>').val(p).html(p))
+});
+
+	$('#SortfieldsList2').empty();
+	$('#SortfieldsList2').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#SortfieldsList2').append($('<option></option>').val(p).html(p))
+});
+
+	$('#SortfieldsList3').empty();
+	$('#SortfieldsList3').append($('<option value="" selected disabled hidden>'+"Choose Field"+'</option>'));
+
+	$.each(fieldsList, function(i, p) {
+    $('#SortfieldsList3').append($('<option></option>').val(p).html(p))
+});
+ 
+});
+});
+
+
+});
+
+// $('#QueryfieldsList1').change(function(){
+
+// 	s = $(this);
+// 	var fieldname = s.val();
+// var matchvalue = 30;
+
+// // var body = bodybuilder().query('match', fieldname, matchvalue).build();
+
+// // console.log(body);
+
+// // client.search({
+// //   index: 'bank',
+// //   body: body
+  
+// // }, function (error, response) {
+// //   // ...
+// //   //console.log(error);
+// //   console.log(response);
+// // });
+
+ });
+
+$('#AddQuery1').click(function(){
+
+	var filterTerm = $('#fieldQuery1').val();
+	var fieldname = $('#QueryfieldsList1').val();
+	body = body.query('match',fieldname, filterTerm);
+
+});
+
+$('#AddQuery2').click(function(){
+
+	var operand = $('#QueryOperand1').val();
+
+	var filterTerm = $('#fieldQuery2').val();
+	var fieldname = $('#QueryfieldsList2').val();
+	
+
+	if(operand == "AND")
+	body = body.query('match',fieldname, filterTerm);
+	else if(operand=="OR")
+		body = body.orQuery('match', fieldname, filterTerm);
+	else if(operand=="NOT")
+		body = body.notQuery('match', fieldname, filterTerm);
+
+
+});
+
+$('#AddQuery3').click(function(){
+
+	var operand = $('#QueryOperand2').val();
+
+	var filterTerm = $('#fieldQuery3').val();
+	var fieldname = $('#QueryfieldsList3').val();
+	
+
+	if(operand == "AND")
+	body = body.query('match',fieldname, filterTerm);
+	else if(operand=="OR")
+		body = body.orQuery('match', fieldname, filterTerm);
+	else if(operand=="NOT")
+		body = body.notQuery('match', fieldname, filterTerm);
+
+
+});
+
+$('#AddRangeQuery1').click(function(){
+
+	var low = $('#lowerLimit1').val();
+	var high = $('#upperLimit1').val();
+	var fieldname = $('#QueryfieldsList4').val();
+	
+
+	body = body.query('range',fieldname, {"gte": low, "lte": high});
+	
+
+
+});
+
+$('#AddTermsQuery1').click(function(){
+
+	var fieldname = $('#QueryfieldsList5').val();
+	var input = $('#termsList1').val();
+	console.log(input);
+	var terms = input.split(',');
+	console.log(terms);
+	body = body.query('terms',fieldname, terms);
+
+})
+
+
+$('#AddFilter1').click(function(){
+
+	var filterTerm = $('#fieldFilter1').val();
+	var fieldname = $('#FilterfieldsList1').val();
+	body = body.filter('match',fieldname, filterTerm);
+
+});
+
+$('#AddFilter2').click(function(){
+
+	var operand = $('#FilterOperand1').val();
+
+	var filterTerm = $('#fieldFilter2').val();
+	var fieldname = $('#FilterfieldsList2').val();
+	
+
+	if(operand == "AND")
+	body = body.filter('match',fieldname, filterTerm);
+	else if(operand=="OR")
+		body = body.orFilter('match', fieldname, filterTerm);
+	else if(operand=="NOT")
+		body = body.notFilter('match', fieldname, filterTerm);
+
+
+});
+
+$('#AddFilter3').click(function(){
+
+	var operand = $('#FilterOperand2').val();
+
+	var filterTerm = $('#fieldFilter3').val();
+	var fieldname = $('#FilterfieldsList3').val();
+	
+
+	if(operand == "AND")
+	body = body.filter('match',fieldname, filterTerm);
+	else if(operand=="OR")
+		body = body.orFilter('match', fieldname, filterTerm);
+	else if(operand=="NOT")
+		body = body.notFilter('match', fieldname, filterTerm);
+
+
+});
+
+$('#Sort1').click(function(){
+
+	var sorttype = $('#SortType1').val();
+	var fieldname = $('#SortfieldsList1').val();
+	body = body.sort(fieldname, sorttype);
+
+});
+
+$('#Sort2').click(function(){
+
+	var sorttype = $('#SortType2').val();
+	var fieldname = $('#SortfieldsList2').val();
+	body = body.sort(fieldname, sorttype);
+
+});
+
+$('#Sort3').click(function(){
+
+	var sorttype = $('#SortType3').val();
+	var fieldname = $('#SortfieldsList3').val();
+	body = body.sort(fieldname, sorttype);
+
+});
+
+$('#AddAggregation').click(function(){
+
+	var nestedagg1 = $('#AggregationType2').val();
+	var nestedagg2 = $('#AggregationType3').val();
+	console.log(nestedagg1+" "+nestedagg2);
+
+	if(nestedagg1==null){
+
+		var type = $('#AggregationType1').val();
+		var interval = $('#HistogramInterval').val();
+		var fieldname = $('#AggregationFieldsList1').val();
+	
+		if(type == "histogram")
+			body = body.aggregation(type, fieldname, {"interval" : interval});
+		else
+			body = body.aggregation(type, fieldname);
+	}
+
+	else{
+
+		if(nestedagg2==null){
+
+		var type1 = $('#AggregationType1').val();
+		var interval1 = $('#HistogramInterval1').val();
+		var fieldname1 = $('#AggregationFieldsList1').val();
+		var type2 = $('#AggregationType2').val();
+		var interval2 = $('#HistogramInterval2').val();
+		var fieldname2 = $('#AggregationFieldsList2').val();
+
+		if(type1 == "histogram")
+		{
+			if(type2 == "histogram")
+				body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}));
+			else
+				body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2));
+
+		}
+
+		else
+		{
+			if(type2 == "histogram")
+				body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}));
+			else
+				body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2));
+
+
+		}
+	}
+
+	else
+	{
+
+		var type1 = $('#AggregationType1').val();
+		var interval1 = $('#HistogramInterval1').val();
+		var fieldname1 = $('#AggregationFieldsList1').val();
+		var type2 = $('#AggregationType2').val();
+		var interval2 = $('#HistogramInterval2').val();
+		var fieldname2 = $('#AggregationFieldsList2').val();
+		var type3 = $('#AggregationType3').val();
+		var interval3 = $('#HistogramInterval3').val();
+		var fieldname3 = $('#AggregationFieldsList3').val();
+
+		if(type1 == "histogram")
+		{
+			if(type2 == "histogram"){
+
+				if(type3=="histogram")
+					body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}, agg => agg.aggregation(type3, fieldname3, {"interval":interval3})));
+				else
+					body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}, agg => agg.aggregation(type3, fieldname3)));
+			}
+			else{
+
+				if(type3=="histogram")
+					body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2, agg => agg.aggregation(type3, fieldname3, {"interval":interval3})));
+				else
+					body = body.aggregation(type1, fieldname1, {"interval":interval1}, agg => agg.aggregation(type2, fieldname2, agg => agg.aggregation(type3, fieldname3)));
+
+			}
+
+		}
+
+		else
+		{
+			if(type2 == "histogram"){
+
+				if(type3=="histogram")
+					body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}, agg => agg.aggregation(type3, fieldname3, {"interval":interval3})));
+				else
+					body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2, {"interval": interval2}, agg => agg.aggregation(type3, fieldname3)));
+			}
+			else{
+				if(type3=="histogram")
+					body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2, agg => agg.aggregation(type3, fieldname3, {"interval":interval3})));
+				else
+					body = body.aggregation(type1, fieldname1, agg => agg.aggregation(type2, fieldname2, agg => agg.aggregation(type3, fieldname3)));
+
+			}
+
+
+		}
+
+
+
+	}
+
+
+
+	}
+
+});
+
+$('#addSize').click(function(){
+
+	resultSize = $('#sizeInput').val();
+	body.size(resultSize);
+
+});
+
+$('#Search').click(function(){
+// s = $('#fieldQuery1');
+// var filterTerm = s.val();
+// var fieldname = $('#fieldsList1').val();
+
+// resultSize = 40;
+
+// body = body.size(resultSize);
+body = body.build();
+
+$('#QueryBody').html(JSON.stringify(body, null, 4));
+
+console.log(body);
+
+
+
+client.search({
+  // index: indexName,
+  body: body
+  
+}, function (error, response) {
+  // ...
+  console.log(error);
+  console.log(response);
+  $('#SearchResults').html(JSON.stringify(response, null, 4));
+  SearchResult = response;
+
+
+});
+
+//body = bodybuilder();
+});
+
+
+$("#Clear").click(function(){
+
+		body = bodybuilder();
+
+		$("#fieldQuery1").val("");
+		$("#fieldQuery2").val("");
+		$("#fieldQuery3").val("");
+		$("#fieldFilter1").val("");
+		$("#fieldFilter2").val("");
+		$("#fieldFilter3").val("");
+		$("#SortType1").val("");
+		$("#SortType2").val("");
+		$("#SortType3").val("");
+		$("#termsList1").val("");
+		$("#lowerLimit1").val("");
+		$("#upperLimit1").val("");
+		$("#QueryfieldsList1").val("");
+		$("#QueryfieldsList2").val("");
+		$("#QueryfieldsList3").val("");
+		$("#QueryfieldsList4").val("");
+		$("#QueryfieldsList5").val("");
+		$("#FilterfieldsList1").val("");
+		$("#FilterfieldsList2").val("");
+		$("#FilterfieldsList3").val("");
+		$("#AggregationFieldsList1").val("");
+		$("#AggregationFieldsList2").val("");
+		$("#AggregationFieldsList3").val("");
+		$("#AggregationType1").val("");
+		$("#AggregationType2").val("");
+		$("#AggregationType3").val("");
+		$("#HistogramInterval1").val("");
+		$("#HistogramInterval2").val("");
+		$("#HistogramInterval3").val("");
+		$("#QueryOperand1").val("");
+		$("#QueryOperand1").val("");
+		$("#FilterOperand1").val("");
+		$("#FilterOperand2").val("");
+		$("#SortfieldsList1").val("");
+		$("#SortfieldsList2").val("");
+		$("#SortfieldsList3").val("");
+		$("#sizeInput").val("");
+
+
+
+
+
+
+});
+
+$("#ClearGraph").click(function(){
+	
+	$("#Graph").empty();
+	$("#droppableX").html("Drag X axis field here");
+	$("#droppableY").html("Drag Y axis field here");
+	$("#droppableChartType").html("Drag Chart type here");
+	$("#Graph").html("Drag X, Y axes and the chart type to display chart here");
+	
+
+});
+
+var X = [];
+  var Y = [];
+  var charttype;
+  var XAxis = "";
+  var YAxis = "";
+
+  $( function() {
+
+    $("#dragChartsContainer").children().draggable({revert: true, helper: "clone"});
+
+
+    $("#droppable").droppable({
+      drop: function(event, ui){
+        // var draggableid1 = ui.draggable.attr("id");
+        // console.log($(`#${draggableid1}`).html());
+      }}); 
+
+    $("#droppableX").droppable({
+      drop: function(event, ui){
+
+      	X = [];
+
+        var draggableX = ui.draggable.attr("id");
+
+        //$(this).css({"color": "#2c7873", "text-align": "center", "font-size": "30px"});
+        $(this).html(draggableX);
+
+        XAxis = draggableX;
+
+        console.log($(`#${draggableX}`).html());
+        // X = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+        for(var i = 0; i < resultSize; i++){
+         //[draggableX];
+         console.log(SearchResult.hits.hits[i]._source[draggableX]); 
+         var x = SearchResult.hits.hits[i]._source[draggableX];
+         X.push(x);
+
+
+		}
+
+
+
+
+      }});
+
+    $("#droppableY").droppable({
+      drop: function(event, ui){
+
+      	Y = [];
+
+        var draggableY = ui.draggable.attr("id");
+        console.log($(`#${draggableY}`).html());
+
+        //$(this).css({"color": "#2c7873", "text-align": "center", "font-size": "20px"});
+        $(this).html(draggableY);
+
+        YAxis = draggableY;
+
+        // Y = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        for(var i = 0; i < resultSize; i++){
+         //[draggableX];
+         console.log(SearchResult.hits.hits[i]._source[draggableY]); 
+         var y = SearchResult.hits.hits[i]._source[draggableY];
+         Y.push(y);
+
+
+		}
+      }});
+
+    $("#droppableChartType").droppable({
+      drop: function(event, ui){
+        var draggableChartType = ui.draggable.attr("id");
+        console.log($(`#${draggableChartType}`).html());
+
+        $(this).html($(`#${draggableChartType}`).html()	);
+
+        var dynamicColors = function() {
+            var r = Math.floor(Math.random() * 255);
+            var g = Math.floor(Math.random() * 255);
+            var b = Math.floor(Math.random() * 255);
+            return "rgb(" + r + "," + g + "," + b + ")";
+         };
+    	
+    	var color = [];
+
+        var Data = [];
+        var XString = [];
+
+      var len = X.length;
+      var i;
+      for(i = 0; i<len; i++){
+        Data.push({"x":X[i], "y": Y[i]});
+        XString.push(""+X[i]);
+        color.push(dynamicColors());
+
+      }
+        
+      console.log(XString);
+
+      console.log(Data);
+
+      $("#Graph").empty();	
+      $("#Graph").html('<canvas id="myChart"></canvas>');
+
+      var ctx = $("#myChart");
+
+      if(draggableChartType == "dragCharts1"){
+
+
+
+      var scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+
+          datasets: [{
+            label: YAxis,
+
+            data: Data,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            pointBackgroundColor: "#2c7873",
+             borderColor: "#2c7873",
+
+            backgroundColor: "#acd0c0"
+
+          }]
+        }
+
+
+
+        });
+
+    }
+
+    if(draggableChartType == "dragCharts2"){
+
+      var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            pointBackgroundColor: "#2c7873",
+
+            borderColor: "#2c7873",
+
+            backgroundColor: "#acd0c0"
+
+
+          }]
+        }, 
+
+       
+
+      });
+    }
+
+    if(draggableChartType == "dragCharts3"){
+      var BarChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,  
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            borderColor: "#2c7873",
+
+            backgroundColor: color
+
+          }]
+        }, 
+
+      });
+    }
+
+     
+
+    if(draggableChartType == "dragCharts4"){
+      var BarChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,  
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            borderColor: "#2c7873",
+
+            backgroundColor: color
+
+          }]
+        }, 
+
+      });
+    }
+
+    if(draggableChartType == "dragCharts5"){
+      var BarChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,  
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            borderColor: "#2c7873",
+
+            backgroundColor: color
+
+          }]
+        }, 
+
+      });
+    }
+
+    if(draggableChartType == "dragCharts6"){
+      var BarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,  
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            borderColor: "#2c7873",
+
+            backgroundColor: "#acd0c0"
+
+          }]
+        }, 
+
+      });
+    }
+    if(draggableChartType == "dragCharts7"){
+      var BarChart = new Chart(ctx, {
+        type: 'polarArea',
+        data: {
+          labels: XString,
+          datasets: [{
+            label: YAxis,  
+            data: Y,
+
+            // xAxisID: XAxis,
+
+            // yAxisID: YAxis,
+
+            borderColor: "#2c7873",
+
+            backgroundColor: color
+
+          }]
+        }, 
+
+      });
+    }
+
+
+
+
+
+       }});
+
+    
+     } );
+
+
+
+
+});
+</script>
+
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ELasticSearch Dashboard</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="UIStyles.css">
+
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="UICreation.js"></script>
+
+
+
+
+</head>
+<body>	
+
+<button class="bigtablink" onclick="openPage('LoadTab', this, 'red')"" id="defaultOpen">Load Index and Documents</button>
+<button class="bigtablink" onclick="openPage('SearchTab', this, 'green')" >Search And Filter</button>
+<button class="bigtablink" onclick="openPage('UITab', this, 'blue')">UI</button>
+
+<div id="LoadTab" class="bigtabcontent">
+Enter the IP address where the ElasticSearch Cluster is hosted
+<br>
+<br>
+
+<input type="text" class="input2" id="host">
+<br>
+<br>
+<button class = "button" id = "LoadHost"> Load Cluster</button>
+<br>
+<br>
+
+
+
+
+<div>
+<button class = "button" id = "loadIndicesButton">Load all the indices</button>
+</div>
+</br>
+
+<div class="dropdown">
+	<select class="select" id="indicesList">
+		<option class = "button" value="" selected disabled hidden> Choose Index </option>
+</select>	
+</div>
+
+<div class="dropdown">
+	<select class="select" id="documentsList">
+		<option class = "option" value="" selected disabled hidden> Choose Document </option>
+</select>
+</div>	
+</br>
+</br>
+
+</div>
+
+<div id = "SearchTab" class = "bigtabcontent"> 
+
+<div class="tab">
+  <button class="tablinks" id="defaultopen" onclick="openTab(event, 'Query Fields')">Query Fields</button>
+  <button class="tablinks" onclick="openTab(event, 'Filter Fields')">Filter Fields</button>
+  <button class="tablinks" onclick="openTab(event, 'Aggregations')">Aggregations</button>
+  <button class="tablinks" onclick="openTab(event, 'Sort')">Sort And Search</button>
+</div>
+
+<div id="Query Fields" class="tabcontent">
+<br>
+&emsp;
+&emsp;&emsp;
+&emsp;
+&emsp;  
+&emsp;  
+&emsp;  
+&emsp;   
+
+
+  <div class="dropdown">
+	<select class="select" id="QueryfieldsList1">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldQuery1"> 
+&emsp;
+&emsp;&emsp;
+<button class = "button" id = "AddQuery1"> Add Query </button>
+<br><br>
+
+
+
+<div class="dropdown">
+	<select class="select" id="QueryOperand1">
+		<option value="" selected disabled hidden> AND </option>
+		<option value="AND"> AND </option>
+		<option value="OR"> OR </option>
+		<option value="NOT"> NOR </option>
+	</select>
+</div>
+
+	<div class="dropdown">
+	<select class="select" id="QueryfieldsList2">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldQuery2"> 
+&emsp;
+&emsp;&emsp;
+<button class = "button" id = "AddQuery2"> Add Query </button>
+<br><br>
+
+<div class="dropdown">
+	<select class="select" id="QueryOperand2">
+		<option value="" selected disabled hidden> AND </option>
+		<option value="AND"> AND </option>
+		<option value="OR"> OR </option>
+		<option value="NOT"> NOR </option>
+	</select>
+</div>
+
+	<div class="dropdown">
+	<select class="select" id="QueryfieldsList3">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldQuery3"> 
+&emsp;
+&emsp;&emsp;
+<button class = "button" id = "AddQuery3"> Add Query </button>
+<br><br>
+
+For Range Query
+
+
+	<div class="dropdown">
+	<select class="select" id="QueryfieldsList4">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+&emsp;
+
+Range from
+
+<input class = "input" type="text" id = "lowerLimit1">
+&emsp;
+to 
+
+<input class = "input" type="text" id = "upperLimit1">
+
+<br><br>
+<button class = "button" id = "AddRangeQuery1"> Add Range Query </button>
+<br><br>
+
+For Terms Query
+
+	<div class="dropdown">
+	<select class="select" id="QueryfieldsList5">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+&emsp;
+Enter comma separated list of terms
+<input class = "input" type="text" id = "termsList1">
+&emsp;
+<br> <br>
+<button class = "button" id = "AddTermsQuery1"> Add Terms Query </button>
+<br>
+<br>
+
+
+</div>
+
+<div id="Filter Fields" class="tabcontent">
+<br>  
+&emsp;
+&emsp;&emsp;
+&emsp;
+&emsp;  
+&emsp;  
+&emsp;  
+&emsp;  
+
+  <div class="dropdown">
+	<select class="select" id="FilterfieldsList1">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldFilter1"> 
+&emsp;
+&emsp;&emsp;
+
+<button class = "button" id = "AddFilter1"> Add Filter </button>
+<br><br>
+
+
+
+<div class="dropdown">
+	<select class="select" id="FilterOperand1">
+		<option value="" selected disabled hidden> AND </option>
+		<option value="AND"> AND </option>
+		<option value="OR"> OR </option>
+		<option value="NOT"> NOR </option>
+	</select>
+</div>
+
+	<div class="dropdown">
+	<select class="select" id="FilterfieldsList2">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldFilter2"> 
+
+&emsp;
+&emsp;&emsp;
+ 
+
+<button class = "button" id = "AddFilter2"> Add Filter </button>
+<br><br>
+
+<div class="dropdown">
+	<select class="select" id="FilterOperand2">
+		<option value="" selected disabled hidden> AND </option>
+		<option value="AND"> AND </option>
+		<option value="OR"> OR </option>
+		<option value="NOT"> NOR </option>
+	</select>
+</div>
+
+	<div class="dropdown">
+	<select class="select" id="FilterfieldsList3">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+<input class = "input" type="text" id = "fieldFilter3"> 
+&emsp;
+&emsp;&emsp;
+<button class = "button" id = "AddFilter3"> Add Filter </button>
+<br><br>
+
+</div>
+
+<div id="Aggregations" class="tabcontent">
+ <br>
+	<div class="dropdown">
+	<select class="select" id="AggregationType1">
+		<option value="" selected disabled hidden> Choose aggregation type </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="avg"> Average </option>
+		<option value="sum"> Sum </option>
+		<option value="min"> Minimum </option>
+		<option value="max"> Maximum </option>
+		<!-- <option value="count"> Count </option> -->
+		<option value="stats"> Stats  </option>
+		<option value="histogram"> Histogram </option>
+
+	</select>
+</div>
+&emsp;
+<div class="dropdown">
+	<select class="select" id="AggregationFieldsList1">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+Enter interval if histogram: <input type="text" class = "input" id="HistogramInterval1">
+<br><br>
+Add another level of aggregation (optional) - 
+<br> <br>
+<div class="dropdown">
+	<select class="select" id="AggregationType2">
+		<option value="" selected disabled hidden> Choose aggregation type </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="avg"> Average </option>
+		<option value="sum"> Sum </option>
+		<option value="min"> Minimum </option>
+		<option value="max"> Maximum </option>
+		<!-- <option value="count"> Count </option> -->
+		<option value="stats"> Stats  </option>
+		<option value="histogram"> Histogram </option>
+
+	</select>
+</div>
+&emsp;
+<div class="dropdown">
+	<select class="select" id="AggregationFieldsList2">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+Enter interval if histogram: <input class = "input" type="text" id="HistogramInterval2">
+<br> <br>
+
+Add another level of aggregation (optional) - 
+<br> <br>
+<div class="dropdown">
+	<select class="select" id="AggregationType3">
+		<option value="" selected disabled hidden> Choose aggregation type </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="avg"> Average </option>
+		<option value="sum"> Sum </option>
+		<option value="min"> Minimum </option>
+		<option value="max"> Maximum </option>
+		<!-- <option value="count"> Count </option> -->
+		<option value="stats"> Stats  </option>
+		<option value="histogram"> Histogram </option>
+
+	</select>
+</div>
+&emsp;
+<div class="dropdown">
+	<select class="select" id="AggregationFieldsList3">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+Enter interval if histogram: <input class="input" type="text" id="HistogramInterval3">
+<br> <br>
+&emsp;
+&emsp;
+&emsp;
+&emsp;
+&emsp;
+&emsp;
+&emsp;
+<button class = "button" id = "AddAggregation"> Add Aggregation </button>
+<br><br>
+
+</div>
+
+<div id="Sort" class="tabcontent">
+<br>
+
+<div class="dropdown">
+	<select class="select" id="SortfieldsList1">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+&emsp;
+
+<div class="dropdown">
+	<select class="select" id="SortType1">
+		<option value="" selected disabled hidden> Choose ascending/descending </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="asc"> Ascending </option>
+		<option value="desc"> Descending </option>
+		
+	</select>
+</div>
+
+<button class = "button" id = "Sort1"> Add Sorting </button>
+
+<br> <br>
+
+<div class="dropdown">
+	<select class="select" id="SortfieldsList2">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+&emsp;
+
+<div class="dropdown">
+	<select class="select" id="SortType2">
+		<option value="" selected disabled hidden> Choose ascending/descending </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="asc"> Ascending </option>
+		<option value="desc"> Descending </option>
+		
+	</select>
+</div>
+
+<button class = "button" id = "Sort2"> Add Sorting </button>
+
+<br> <br>
+
+<div class="dropdown">
+	<select class="select" id="SortfieldsList3">
+		<option value="" selected disabled hidden> Choose Field </option>
+	</select>
+
+</div>
+
+&emsp;
+
+<div class="dropdown">
+	<select class="select" id="SortType3">
+		<option value="" selected disabled hidden> Choose ascending/descending </option>
+		<!-- <option value="terms"> Terms (for bucket) </option> -->
+		<option value="asc"> Ascending </option>
+		<option value="desc"> Descending </option>
+		
+	</select>
+</div>
+
+<button class = "button" id = "Sort3"> Add Sorting </button>
+
+<br> <br>
+
+Enter Size of Results to be fetched 
+<input type="text" id="sizeInput" class="input">
+<button class = "button" id = "addSize"> Specify Size </button>
+</div>
+
+
+
+<button class = "button" id = "Search"> Search </button>
+&emsp;
+&emsp;
+&emsp;
+&emsp;
+<button class = "button" id = "Clear"> Clear for new Search </button>
+
+
+
+<textarea class = "textArea" id = "QueryBody"></textarea>
+<textarea class = "textArea2" id = "SearchResults"></textarea>
+
+</div>
+
+<div id = "UITab" class="bigtabcontent">
+
+Draggable fields
+<div id = "dragFieldsContainer" class =  "ui-widget-fields-container">
+
+Load index and documents to view fields
+
+</div>
+
+<div id = "droppable" class = "ui-widget-header-big">
+<div class = "dashboardlabel">
+		Chart Creation Dashboard
+</div>
+	<div id = "droppableX" class = "ui-widget-X">
+		Drag X axis field here
+	</div>
+
+	<div id = "droppableY" class = "ui-widget-Y">
+		Drag Y axis field here
+	</div>
+
+	<div id = "droppableChartType" class = "ui-widget-ChartType">
+		Drag Chart type here
+	</div>
+
+	<div id = "Graph" class = "ui-widget-Chart">
+
+			Drag X, Y axes and the chart type to display chart here
+		
+
+	</div>
+
+</div>
+<div class = "charttypeslabel">
+	Draggable Chart Types
+</div>
+<div id = "dragChartsContainer" class =  "ui-widget-Charts-container">
+<div id ="dragCharts1" class = "ui-widget-field">
+Scatter Chart
+</div>
+
+<div id ="dragCharts2" class = "ui-widget-field">
+Line Chart
+</div>
+
+<div id ="dragCharts3" class = "ui-widget-field">
+Bar Chart
+</div>
+
+<div id ="dragCharts4" class = "ui-widget-field">
+Pie Chart
+</div>
+
+<div id ="dragCharts5" class = "ui-widget-field">
+Doughnut Chart
+</div>
+
+<div id ="dragCharts6" class = "ui-widget-field">
+Radar Chart
+</div>
+
+<div id ="dragCharts7" class = "ui-widget-field">
+Polar Area Chart
+</div>
+
+</div>
+<div class = "clearbuttondiv">
+<button class="bigtablink" id = "ClearGraph"> Clear Graph Area </button>
+
+</div></div>
+
+
+</body>
+</html>

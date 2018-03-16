@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jQuery UI Draggable - Default functionality</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="UIStyles.css">
+  <style>
+  </style>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    $( "#draggable1" ).draggable();
+  } );
+
+  $( function() {
+    $( "#draggable2" ).draggable();
+  } );
+
+  $( function() {
+    $("#droppable").droppable({
+      drop: function(event, ui){
+        var draggableid1 = ui.draggable.attr("id");
+        console.log($(`#${draggableid1}`).html());
+      }}); 
+
+    //$("#resizable" ).resizable();
+    
+
+
+  } );
+
+
+
+
+
+
+
+  </script>
+</head>
+<body>
+ 
+<div id="draggable1" class="ui-widget-content" val="">
+  Drag me around
+</div>
+
+<div id="draggable2" class="ui-widget-content">
+  Drag me around
+</div>
+
+<div id = "droppable" class = "ui-widget-header">
+
+  </div>
+  
+
+ 
+</body>
+</html>
